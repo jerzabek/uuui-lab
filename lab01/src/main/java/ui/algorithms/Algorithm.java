@@ -1,7 +1,7 @@
 package ui.algorithms;
 
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import ui.util.Utility;
@@ -11,7 +11,7 @@ import ui.util.Utility;
  */
 public abstract class Algorithm {
 
-  private final HashMap<String, HashMap<String, Double>> transitions = new HashMap<>();
+  private final LinkedHashMap<String, LinkedHashMap<String, Double>> transitions = new LinkedHashMap<>();
   private String beginState;
   private List<String> goalStates;
 
@@ -20,6 +20,7 @@ public abstract class Algorithm {
   protected int statesVisited = 0;
   protected double totalCost = 0;
   protected int pathLength = 0;
+  protected String totalPath;
 
   public Algorithm(String stateSpacePath) {
     List<String> lines = Utility.readLines(stateSpacePath);
@@ -45,15 +46,22 @@ public abstract class Algorithm {
         String[] tempTransitionDefinition = line.split(":\\s");
 
         String currentState = tempTransitionDefinition[0];
-        String[] tempTransitions = tempTransitionDefinition[1].split("\\s");
 
-        HashMap<String, Double> transitionsForCurrentState = new LinkedHashMap<>();
+        LinkedHashMap<String, Double> transitionsForCurrentState = new LinkedHashMap<>();
 
-        for (String tempTransition : tempTransitions) {
-          // For each next_state_i,cost pair we parse them and store in the inner HashMap
-          String[] tempTransitionDetails = tempTransition.split(",");
+        if (tempTransitionDefinition.length >= 2) {
+          String[] tempTransitions = tempTransitionDefinition[1].split("\\s");
 
-          transitionsForCurrentState.put(tempTransitionDetails[0], Double.parseDouble(tempTransitionDetails[1]));
+          // We sort the successors states (transitions) here so that we can access them in order later
+          List<String> sortedTransitions = Arrays.asList(tempTransitions);
+          Collections.sort(sortedTransitions);
+
+          for (String tempTransition : sortedTransitions) {
+            // For each next_state_i,cost pair we parse them and store in the inner HashMap
+            String[] tempTransitionDetails = tempTransition.split(",");
+
+            transitionsForCurrentState.put(tempTransitionDetails[0], Double.parseDouble(tempTransitionDetails[1]));
+          }
         }
 
         transitions.put(currentState, transitionsForCurrentState);
@@ -63,7 +71,7 @@ public abstract class Algorithm {
 
   public abstract void run();
 
-  public HashMap<String, HashMap<String, Double>> getTransitions() {
+  public LinkedHashMap<String, LinkedHashMap<String, Double>> getTransitions() {
     return transitions;
   }
 
@@ -75,9 +83,13 @@ public abstract class Algorithm {
     return goalStates;
   }
 
+  public boolean isGoalState(String state) {
+    return goalStates.contains(state);
+  }
+
   @Override
   public String toString() {
-    StringBuilder result = new StringBuilder(String.format("%s: %s", Utility.LOG_FOUND_SOLUTION, foundSolution ? "yes" : "no"));
+    StringBuilder result = new StringBuilder(String.format("%s: %s\n", Utility.LOG_FOUND_SOLUTION, foundSolution ? "yes" : "no"));
 
     if (!foundSolution) {
       return result.toString();
@@ -85,10 +97,8 @@ public abstract class Algorithm {
 
     result.append(String.format("%s: %d\n", Utility.LOG_STATES_VISITED, statesVisited));
     result.append(String.format("%s: %d\n", Utility.LOG_PATH_LENGTH, pathLength));
-    result.append(String.format("%s: %f", Utility.LOG_TOTAL_COST, totalCost));
-
-    // TODO: Implement output za path kad skuzim kako cu implementirat to
-    // result.append(String.format("%s: %s", Utility.LOG_PATH, path));
+    result.append(String.format("%s: %.1f\n", Utility.LOG_TOTAL_COST, totalCost));
+    result.append(String.format("%s: %s", Utility.LOG_PATH, totalPath));
 
     return result.toString();
   }
