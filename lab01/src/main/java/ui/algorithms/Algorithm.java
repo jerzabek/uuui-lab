@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import ui.util.Utility;
 
 /**
@@ -97,7 +98,7 @@ public abstract class Algorithm {
 
     result.append(String.format("%s: %d\n", Utility.LOG_STATES_VISITED, statesVisited));
     result.append(String.format("%s: %d\n", Utility.LOG_PATH_LENGTH, pathLength));
-    result.append(String.format("%s: %.1f\n", Utility.LOG_TOTAL_COST, totalCost));
+    result.append(String.format(Locale.ROOT, "%s: %.1f\n", Utility.LOG_TOTAL_COST, totalCost));
     result.append(String.format("%s: %s", Utility.LOG_PATH, totalPath));
 
     return result.toString();
