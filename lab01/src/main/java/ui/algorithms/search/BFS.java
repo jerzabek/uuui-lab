@@ -1,9 +1,10 @@
-package ui.algorithms;
+package ui.algorithms.search;
 
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Objects;
+import ui.algorithms.Algorithm;
 import ui.util.Utility;
 
 /**
@@ -13,8 +14,6 @@ public class BFS extends Algorithm {
 
   public BFS(String stateSpacePath) {
     super(stateSpacePath);
-
-    System.out.println(Utility.COMMENT + " BFS");
   }
 
   @Override
@@ -108,5 +107,12 @@ public class BFS extends Algorithm {
     public int hashCode() {
       return Objects.hash(currentState);
     }
+  }
+
+  @Override
+  public String toString() {
+    System.out.println(Utility.COMMENT + " BFS");
+    
+    return super.toString();
   }
 }

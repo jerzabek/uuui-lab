@@ -1,4 +1,4 @@
-package ui.algorithms;
+package ui.algorithms.search;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,34 +11,20 @@ import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import ui.algorithms.HeuristicAlgorithm;
 import ui.util.Utility;
 
 /**
  * @author Ivan Jeržabek - ivan.jerzabek@fer.hr
  */
-public class AStar extends Algorithm {
+public class AStar extends HeuristicAlgorithm {
 
-  private final HashMap<String, Integer> heuristicValues = new HashMap<>();
+  private final String heuristicDescriptorPath;
 
   public AStar(String stateSpacePath, String heuristicDescriptorPath) {
-    super(stateSpacePath);
+    super(stateSpacePath, heuristicDescriptorPath);
 
-    if (heuristicDescriptorPath == null) {
-      System.out.println("No heuristic descriptor path provided");
-      System.exit(1);
-    }
-
-    List<String> heuristicDescriptorLines = Utility.readLines(heuristicDescriptorPath);
-
-    for (String line : heuristicDescriptorLines) {
-      // All lines will have the following format:
-      // state: heuristic_value
-      String[] details = line.split(":\\s");
-
-      heuristicValues.put(details[0], Integer.parseInt(details[1]));
-    }
-
-    System.out.println(Utility.COMMENT + " A-STAR " + heuristicDescriptorPath);
+    this.heuristicDescriptorPath = heuristicDescriptorPath;
   }
 
   @Override
@@ -128,5 +114,12 @@ public class AStar extends Algorithm {
     public double getTotalEstimatedCost() {
       return totalEstimatedCost;
     }
+  }
+
+  @Override
+  public String toString() {
+    System.out.println(Utility.COMMENT + " A-STAR " + heuristicDescriptorPath);
+
+    return super.toString();
   }
 }

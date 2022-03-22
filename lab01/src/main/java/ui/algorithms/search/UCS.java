@@ -1,4 +1,4 @@
-package ui.algorithms;
+package ui.algorithms.search;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import ui.algorithms.Algorithm;
 import ui.util.Utility;
 
 /**
@@ -19,8 +20,6 @@ public class UCS extends Algorithm {
 
   public UCS(String stateSpacePath) {
     super(stateSpacePath);
-
-    System.out.println(Utility.COMMENT + " UCS");
   }
 
   @Override
@@ -110,5 +109,12 @@ public class UCS extends Algorithm {
     public double getCost() {
       return cost;
     }
+  }
+
+  @Override
+  public String toString() {
+    System.out.println(Utility.COMMENT + " UCS");
+
+    return super.toString();
   }
 }

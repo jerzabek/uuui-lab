@@ -24,6 +24,11 @@ public abstract class Algorithm {
   protected String totalPath;
 
   public Algorithm(String stateSpacePath) {
+    if (stateSpacePath == null) {
+      System.out.println("No state space descriptor path provided");
+      System.exit(1);
+    }
+
     List<String> lines = Utility.readLines(stateSpacePath);
 
     int nonCommentLine = 0;
@@ -70,6 +75,16 @@ public abstract class Algorithm {
     }
   }
 
+  public void initialize(String beginState) {
+    this.beginState = beginState;
+
+    foundSolution = false;
+    statesVisited = 0;
+    totalCost = 0;
+    pathLength = 0;
+    totalPath = "";
+  }
+
   public abstract void run();
 
   public LinkedHashMap<String, LinkedHashMap<String, Double>> getTransitions() {
@@ -80,12 +95,12 @@ public abstract class Algorithm {
     return beginState;
   }
 
-  public List<String> getGoalStates() {
-    return goalStates;
-  }
-
   public boolean isGoalState(String state) {
     return goalStates.contains(state);
+  }
+
+  public double getTotalCost() {
+    return totalCost;
   }
 
   @Override
