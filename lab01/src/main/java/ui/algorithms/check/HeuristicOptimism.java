@@ -6,7 +6,6 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import ui.algorithms.Algorithm;
 import ui.algorithms.HeuristicAlgorithm;
-import ui.algorithms.search.AStar;
 import ui.algorithms.search.UCS;
 import ui.util.Utility;
 
