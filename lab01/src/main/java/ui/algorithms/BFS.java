@@ -83,7 +83,6 @@ public class BFS extends Algorithm {
       this.path = node.path + " => " + current;
       this.cost = node.cost + additionalCost;
       this.depth = node.depth + 1;
-
     }
 
     public Node(String current) {

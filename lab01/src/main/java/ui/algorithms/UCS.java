@@ -25,7 +25,7 @@ public class UCS extends Algorithm {
 
   @Override
   public void run() {
-    Queue<Node> open = new PriorityQueue<>();
+    Queue<Node> open = new PriorityQueue<>(Node.nodeComparator);
     Set<String> visited = new HashSet<>();
     Map<String, Node> openIndex = new HashMap<>();
 
@@ -81,7 +81,7 @@ public class UCS extends Algorithm {
     totalPath = node.path;
   }
 
-  private static class Node implements Comparable<Node> {
+  private static class Node {
 
     private final String state;
     private final double cost;
@@ -101,11 +101,6 @@ public class UCS extends Algorithm {
       this.cost = 0;
       this.path = state;
       this.depth = 1;
-    }
-
-    @Override
-    public int compareTo(Node other) {
-      return nodeComparator.compare(this, other);
     }
 
     public String getState() {
