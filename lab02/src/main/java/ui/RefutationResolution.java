@@ -2,6 +2,7 @@ package ui;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,11 +25,15 @@ public class RefutationResolution {
   private final List<Clause> premises;
   private final Clause goalClause;
   private final List<Clause> negatedGoalClause;
+  private final Map<Clause, Clause[]> parents;
+  private List<Clause> clauseTree;
 
   public RefutationResolution(List<Clause> clauses, Clause goalClause) {
     this.premises = clauses;
 
     this.goalClause = new Clause(goalClause.getLiterals());
+    this.clauseTree = new ArrayList<>();
+    this.parents = new HashMap<>();
 
     this.negatedGoalClause = new LinkedList<>();
     this.negatedGoalClause.addAll(goalClause.negateClause());
@@ -39,58 +44,20 @@ public class RefutationResolution {
     Set<Clause> sos = new LinkedHashSet<>(negatedGoalClause);
 
     Queue<Clause> queue = new ArrayDeque<>(sos);
-    Set<Clause> newClauses = new LinkedHashSet<>();
+    Set<Clause> newClauses;
 
     while (!queue.isEmpty()) {
       Clause sosClause = queue.poll();
-//      System.out.println("Trenutno: " + sosClause + " sos size: " + sos.size() + " queue size: " + queue.size());
       newClauses = new LinkedHashSet<>();
 
-
-      for (Clause otherClause : premises) {
-        Optional<Clause> resolvent = resolve(sosClause, otherClause);
-
-        if (resolvent.isEmpty()) {
-          continue;
-        }
-
-//        System.out.println("1: " + sosClause + " -- " + otherClause);
-//        System.out.println("Result: " + resolvent.get());
-
-        // NIL
-        if (resolvent.get().getLiterals().isEmpty()) {
-//          System.out.println("1: nil");
-          return true;
-        }
-
-        if (!sos.contains(resolvent.get())) {
-          newClauses.add(resolvent.get());
-        }
+      // Firstly we iterate over premises
+      if (attemptResolvement(sos, newClauses, premises, sosClause)) {
+        return true;
       }
 
-      for (Clause otherSosClause : sos) {
-        if (otherSosClause.equals(sosClause)) {
-          continue;
-        }
-
-        Optional<Clause> resolvent = resolve(sosClause, otherSosClause);
-
-        if (resolvent.isEmpty()) {
-          continue;
-        }
-
-//        System.out.println("2: " + sosClause + " -- " + otherSosClause);
-//        System.out.println("Result: " + resolvent.get());
-
-        // NIL
-        if (resolvent.get().getLiterals().isEmpty()) {
-//          System.out.println("2: nil");
-          return true;
-        }
-
-        if (!sos.contains(resolvent.get())) {
-          newClauses.add(resolvent.get());
-        }
+      // Then we iterate over all established set-of-support clauses (this doesn't include newly generated clauses)
+      if (attemptResolvement(sos, newClauses, sos, sosClause)) {
+        return true;
       }
 
       for (Clause c : newClauses) {
@@ -103,6 +70,55 @@ public class RefutationResolution {
     }
 
     return false;
+  }
+
+  private boolean attemptResolvement(Set<Clause> sos, Set<Clause> newClauses, Collection<Clause> clauses, Clause clause) {
+    for (Clause otherClause : clauses) {
+      Optional<Clause> resolvent = resolve(clause, otherClause);
+
+      if (resolvent.isEmpty()) {
+        continue;
+      }
+
+      // NIL
+      if (resolvent.get().getLiterals().isEmpty()) {
+        resolveClauseTree(clause, otherClause);
+        return true;
+      }
+
+      if (!sos.contains(resolvent.get())) {
+        parents.put(resolvent.get(), new Clause[]{clause, otherClause});
+        newClauses.add(resolvent.get());
+      }
+    }
+    return false;
+  }
+
+  private void resolveClauseTree(Clause a, Clause b) {
+    List<Clause> leftParent = resolveClauseParents(a, 0);
+    List<Clause> rightParent = resolveClauseParents(b, 0);
+
+    Set<Clause> parentalClauses = new HashSet<>(leftParent);
+    parentalClauses.addAll(rightParent);
+
+    clauseTree = new ArrayList<>(parentalClauses);
+  }
+
+  private List<Clause> resolveClauseParents(Clause clause, int depth) {
+    if (!parents.containsKey(clause) || depth > 10) {
+      return List.of(clause);
+    }
+
+    Clause[] parentClauses = parents.get(clause);
+
+    List<Clause> leftParent = resolveClauseParents(parentClauses[0], depth + 1);
+    List<Clause> rightParent = resolveClauseParents(parentClauses[1], depth + 1);
+
+    Set<Clause> parentalClauses = new HashSet<>(leftParent);
+    parentalClauses.addAll(rightParent);
+    parentalClauses.add(clause);
+
+    return new ArrayList<>(parentalClauses);
   }
 
   private Optional<Clause> resolve(Clause a, Clause b) {
@@ -162,5 +178,9 @@ public class RefutationResolution {
 
   public Clause getGoalClause() {
     return goalClause;
+  }
+
+  public List<Clause> getClauseTree() {
+    return clauseTree;
   }
 }

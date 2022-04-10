@@ -20,10 +20,6 @@ public class Literal {
     this.atom = atom;
   }
 
-  public void negate() {
-    negated = !negated;
-  }
-
   public boolean isNegated() {
     return negated;
   }

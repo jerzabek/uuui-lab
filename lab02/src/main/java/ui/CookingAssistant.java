@@ -23,17 +23,25 @@ public class CookingAssistant {
         case TEST_CLAUSE -> {
           RefutationResolution resolution = new RefutationResolution(premises, instruction.getClause());
 
+          System.out.println("Testing clause " + instruction.getClause());
           boolean result = resolution.refute();
 
+          for (Clause clause : resolution.getClauseTree()) {
+            System.out.println(clause);
+          }
+
           System.out.printf("[CONCLUSION]: %s is %s\n", resolution.getGoalClause(), result ? "true" : "unknown");
+          System.out.println("\n");
         }
         case ADD_CLAUSE -> {
           premises.add(instruction.getClause());
           System.out.println("Added clause " + instruction.getClause());
+          System.out.println("\n");
         }
         case REMOVE_CLAUSE -> {
           premises.remove(instruction.getClause());
           System.out.println("Removed clause " + instruction.getClause());
+          System.out.println("\n");
         }
       }
     }

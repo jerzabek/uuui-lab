@@ -56,11 +56,19 @@ public class Solution {
     }
   }
 
-  private static void refuteResolution(RefutationResolution resolution) {
+  public static void refuteResolution(RefutationResolution resolution) {
     boolean result = resolution.refute();
 
-    System.out.println("Parsed clauses:");
+    System.out.println("-------------------- Knowledge: --------------------");
     for (Clause clause : resolution.getPremises()) {
+      System.out.println(clause);
+    }
+
+    System.out.println("-------------------- Goal clause: --------------------");
+    System.out.println(resolution.getGoalClause());
+    System.out.println("----------------------------------------------------");
+
+    for (Clause clause : resolution.getClauseTree()) {
       System.out.println(clause);
     }
 
