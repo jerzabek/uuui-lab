@@ -15,9 +15,13 @@ import ui.data.Clause;
 public class ClauseParser {
 
   private final List<Clause> clauses;
-  private final Clause goalClause;
+  private Clause goalClause;
 
   public ClauseParser(String filePath) throws IOException {
+    this(filePath, false);
+  }
+
+  public ClauseParser(String filePath, boolean includeLastClause) throws IOException {
     Path path = Paths.get(filePath);
 
     List<String> clauseLines = Files.readAllLines(path);
@@ -31,12 +35,18 @@ public class ClauseParser {
         continue;
       }
 
-      // We turn all read data into lowercase - because we can
-      clauses.add(Clause.parseClause(clauseLine.toLowerCase(Locale.ROOT)));
+      try {
+        // We turn all read data into lowercase - because we can
+        // We also do not add any clauses that are tautologies - they will throw an exception
+        clauses.add(Clause.parseClause(clauseLine.toLowerCase(Locale.ROOT)));
+      } catch (Exception ignored) {
+      }
     }
 
-    // The last clause that we find will be the goal clause
-    goalClause = clauses.remove(clauses.size() - 1);
+    if (!includeLastClause) {
+      // The last clause that we find will be the goal clause
+      goalClause = clauses.remove(clauses.size() - 1);
+    }
   }
 
   public List<Clause> getClauses() {

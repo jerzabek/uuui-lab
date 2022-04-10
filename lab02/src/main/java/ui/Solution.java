@@ -2,6 +2,7 @@ package ui;
 
 import ui.data.Clause;
 import ui.util.ClauseParser;
+import ui.util.CookingAssistantInstructionParser;
 import ui.util.Utility;
 
 /**
@@ -40,8 +41,12 @@ public class Solution {
             return;
           }
 
-          // args[1], args[2] // clause descriptor file path, user commands file path
-          cookingAssistant();
+          ClauseParser clauseParser = new ClauseParser(args[1], true); // clause descriptor file path
+          CookingAssistantInstructionParser instructionParser = new CookingAssistantInstructionParser(args[2]); // user commands file path
+
+          CookingAssistant cookingAssistant = new CookingAssistant(clauseParser.getClauses(), instructionParser.getInstructions());
+
+          cookingAssistant.cookPerInstructions();
         }
         default -> throw new IllegalArgumentException("Invalid mode " + mode);
       }
@@ -55,14 +60,10 @@ public class Solution {
     boolean result = resolution.refute();
 
     System.out.println("Parsed clauses:");
-    for(Clause clause : resolution.getPremises()) {
+    for (Clause clause : resolution.getPremises()) {
       System.out.println(clause);
     }
 
     System.out.printf("[CONCLUSION]: %s is %s\n", resolution.getGoalClause(), result ? "true" : "unknown");
-  }
-
-  private static void cookingAssistant() {
-
   }
 }

@@ -1,5 +1,6 @@
 package ui.data;
 
+import java.util.Objects;
 import ui.util.Utility;
 
 /**
@@ -38,5 +39,22 @@ public class Literal {
     }
 
     return atom.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Literal literal = (Literal) o;
+    return negated == literal.negated && atom.equals(literal.atom);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(negated, atom);
   }
 }
