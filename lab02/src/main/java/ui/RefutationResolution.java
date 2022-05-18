@@ -98,7 +98,7 @@ public class RefutationResolution {
     List<Clause> leftParent = resolveClauseParents(a, 0);
     List<Clause> rightParent = resolveClauseParents(b, 0);
 
-    Set<Clause> parentalClauses = new HashSet<>(leftParent);
+    Set<Clause> parentalClauses = new LinkedHashSet<>(leftParent);
     parentalClauses.addAll(rightParent);
 
     clauseTree = new ArrayList<>(parentalClauses);
@@ -114,7 +114,7 @@ public class RefutationResolution {
     List<Clause> leftParent = resolveClauseParents(parentClauses[0], depth + 1);
     List<Clause> rightParent = resolveClauseParents(parentClauses[1], depth + 1);
 
-    Set<Clause> parentalClauses = new HashSet<>(leftParent);
+    Set<Clause> parentalClauses = new LinkedHashSet<>(leftParent);
     parentalClauses.addAll(rightParent);
     parentalClauses.add(clause);
 
