@@ -22,6 +22,11 @@ public class Solution {
 
     String pathToFile = args[0];
     String pathToTest = args[1];
+    Integer maxDepth = null;
+
+    if (args.length >= 3) {
+      maxDepth = Integer.parseInt(args[2]);
+    }
 
     List<String> datasetDescriptor = getDatasetDescriptorContent(pathToFile);
     List<String> testDatasetDescriptor = getDatasetDescriptorContent(pathToTest);
@@ -29,7 +34,7 @@ public class Solution {
     Dataset dataset = Dataset.datasetFactory(datasetDescriptor);
     Dataset testDataset = Dataset.datasetFactory(testDatasetDescriptor);
 
-    Algorithm algorithm = new ID3();
+    Algorithm algorithm = new ID3(maxDepth);
 
     algorithm.fit(dataset);
     algorithm.predict(testDataset);

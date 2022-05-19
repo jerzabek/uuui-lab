@@ -25,7 +25,12 @@ public class Utility {
       partitionExpectancy += relativeFrequency * entropy(partition);
     }
 
-    return parentalEntropy - partitionExpectancy;
+    double ig = parentalEntropy - partitionExpectancy;
+    ig = Math.round(ig * 10000d) / 10000d;
+
+//    System.out.println("IG(" + feature + ") " + ig);
+
+    return ig;
   }
 
   public static double entropy(Dataset dataset) {

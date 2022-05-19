@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Stack;
 import java.util.stream.Collectors;
 import ui.Utility;
 import ui.dataset.Dataset;
@@ -19,35 +21,55 @@ import ui.dataset.tree.Node;
 public class ID3 extends Algorithm {
 
   private Node treeParent;
+  private final Integer maxDepth;
+  private Dataset originalDataset;
+
+  public ID3(Integer depth) {
+    this.maxDepth = depth;
+  }
 
   @Override
   public void fit(Dataset dataset) {
-    treeParent = ID3Iteration(dataset, dataset, dataset.getExamplesContainer().getHeader().getFeatures());
+    originalDataset = dataset;
+    treeParent = ID3Iteration(dataset, dataset, dataset.getExamplesContainer().getHeader().getFeatures(), 0);
     System.out.println("[BRANCHES]:");
 
-    for (String feature : treeParent.subtrees.keySet()) {
-      Node node = treeParent.subtrees.get(feature);
+    Stack<TreeNode> stack = new Stack<>();
+    stack.add(new TreeNode(treeParent, 0, ""));
 
-      printBranch(treeParent.feature, feature, node, 1);
+    while (!stack.isEmpty()) {
+      TreeNode treeNode = stack.pop();
+      Node node = treeNode.node;
+
+      if (node instanceof Leaf) {
+        System.out.printf("%s%s\n", treeNode.path, node.feature);
+        continue;
+      }
+
+      for (String value : node.subtrees.keySet()) {
+        stack.add(
+            new TreeNode(
+                node.subtrees.get(value),
+                treeNode.depth + 1,
+                treeNode.path + String.format("%d:%s=%s ", treeNode.depth + 1, node.feature, value)));
+      }
     }
   }
 
-  private void printBranch(String parentFeature, String value, Node node, int depth) {
-    if (node instanceof Leaf) {
-      System.out.printf("%d:%s=%s ", depth, parentFeature, value);
-      System.out.printf("%s\n", node.feature);
-      return;
-    }
+  private static class TreeNode {
 
-    for (String feature : node.subtrees.keySet()) {
-      Node childNode = node.subtrees.get(feature);
-      System.out.printf("%d:%s=%s ", depth, parentFeature, value);
+    private final Node node;
+    private final int depth;
+    private final String path;
 
-      printBranch(node.feature, feature, childNode, depth + 1);
+    public TreeNode(Node node, int depth, String path) {
+      this.node = node;
+      this.depth = depth;
+      this.path = path;
     }
   }
 
-  private Node ID3Iteration(Dataset dataset, Dataset parentDataset, List<String> listOfFeatures) {
+  private Node ID3Iteration(Dataset dataset, Dataset parentDataset, List<String> listOfFeatures, int depth) {
     if (dataset.getExamplesContainer().getExamples().isEmpty()) {
       String mostPopularClassification = argmaxClassification(parentDataset);
 
@@ -60,14 +82,19 @@ public class ID3 extends Algorithm {
       return new Leaf(mostPopularClassification);
     }
 
+    if (maxDepth != null && depth >= maxDepth) {
+      return new Leaf(argmaxClassification(dataset));
+    }
+
     String maxIGFeature = getMaxInformationGainFeature(dataset, listOfFeatures);
     Map<String, Node> subtrees = new HashMap<>();
 
-    for (String value : dataset.getFeatureValues().get(maxIGFeature)) {
+    for (String value : originalDataset.getFeatureValues().get(maxIGFeature)) {
       List<String> newListOfFeatures = new ArrayList<>(listOfFeatures);
+      Collections.sort(newListOfFeatures);
       newListOfFeatures.remove(maxIGFeature);
 
-      Node newNode = ID3Iteration(Dataset.partitionDataset(dataset, maxIGFeature, value), dataset, newListOfFeatures);
+      Node newNode = ID3Iteration(Dataset.partitionDataset(dataset, maxIGFeature, value), dataset, newListOfFeatures, depth + 1);
       subtrees.put(value, newNode);
     }
 
@@ -98,9 +125,11 @@ public class ID3 extends Algorithm {
     Map<String, Long> counter = dataset.getExamplesContainer().getExamples().stream()
         .collect(Collectors.groupingBy(Example::getClassification, Collectors.counting()));
 
-    // TODO: Possibly sort alphabetically
-    return counter.keySet().stream()
-        .max(Comparator.comparing(counter::get)).orElse("bruh idk");
+    Comparator<Entry<String, Long>> sortByCount = Entry.comparingByValue();
+    Comparator<Entry<String, Long>> sortByName = Entry.comparingByKey();
+
+    return counter.entrySet().stream()
+        .max(sortByCount.thenComparing(sortByName.reversed())).map(Entry::getKey).orElse("bruh");
   }
 
   @Override
@@ -111,7 +140,7 @@ public class ID3 extends Algorithm {
     int numOfCorrect = 0;
 
     for (Example example : dataset.getExamplesContainer().getExamples()) {
-      String leaf = getLeaf(treeParent, example, dataset.getExamplesContainer().getHeader().getFeatures());
+      String leaf = getLeaf(treeParent, dataset, example, dataset.getExamplesContainer().getHeader().getFeatures());
       prediction.append(" ").append(leaf);
 
       if (leaf.equals(example.getClassification())) {
@@ -157,13 +186,19 @@ public class ID3 extends Algorithm {
     confusionMatrix.get(answer).put(predicted, confusionMatrix.get(answer).get(predicted) + 1);
   }
 
-  private String getLeaf(Node node, Example example, List<String> features) {
+  private String getLeaf(Node node, Dataset dataset, Example example, List<String> features) {
     if (node instanceof Leaf) {
       return node.feature;
     }
 
     String value = example.getValues().get(features.indexOf(node.feature));
 
-    return getLeaf(node.subtrees.get(value), example, features);
+    if (!node.subtrees.containsKey(value)) {
+      ArrayList<String> values = new ArrayList<>(dataset.getClassificationValues());
+      Collections.sort(values);
+      return values.get(0);
+    }
+
+    return getLeaf(node.subtrees.get(value), dataset, example, features);
   }
 }
